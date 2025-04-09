@@ -21,7 +21,6 @@ class _NewItemState extends State<NewItem> {
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
   var _isSending = false;
-  String? _error;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
@@ -34,36 +33,30 @@ class _NewItemState extends State<NewItem> {
         'shopping-list-fafae-default-rtdb.asia-southeast1.firebasedatabase.app',
         'shopping-list.json',
       );
+      
+      final response = await http.post(
+        url,
+        headers: {'Content-type': 'application/json'},
+        body: json.encode({
+          'name': _enteredName,
+          'quantity': _enteredQuantity,
+          'category': _selectedCategory.title,
+        }),
+      );
 
-      try {
-        final response = await http.post(
-          url,
-          headers: {'Content-type': 'application/json'},
-          body: json.encode({
-            'name': _enteredName,
-            'quantity': _enteredQuantity,
-            'category': _selectedCategory.title,
-          }),
-        );
+      final Map<String, dynamic> resData = json.decode(response.body);
 
-        final Map<String, dynamic> resData = json.decode(response.body);
-
-        if (!context.mounted) {
-          return;
-        }
-        Navigator.of(context).pop(
-          GroceryItem(
-            id: resData['name'],
-            name: _enteredName,
-            quantity: _enteredQuantity,
-            category: _selectedCategory,
-          ),
-        );
-      } catch (e) {
-        setState(() {
-          _error = 'Something went wrong! Please try again later.';
-        });
+      if (!context.mounted) {
+        return;
       }
+      Navigator.of(context).pop(
+        GroceryItem(
+          id: resData['name'],
+          name: _enteredName,
+          quantity: _enteredQuantity,
+          category: _selectedCategory,
+        ),
+      );
     }
   }
 
